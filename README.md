@@ -5,9 +5,11 @@ remotely
 This project is a work in progress.  It doesn't actually connect yet ;)
 
 Usage: remotely --worker-hostname=<host> [<options>] -- <command> [<args> ...]
+
 The remotely program allows the given <command> to be executed using the CPU
 resources of another machine, while still behaving as if it were being
 executed locally.
+
 This is similar to process migration: a local program using local data is
 executed as a process on another machine.  However, this program differs from
 other process migration methodologies in several ways:
@@ -25,6 +27,7 @@ other process migration methodologies in several ways:
      advantage of any number of physical machines that might pool resources for
      the virtualized system.
  - Security-wise, the overseer machine must trust the worker machine.
+
 Security considerations:
 The worker machine will be able to view/edit the overseer machine, because it is
 necessary for the overseer to share its local file system with the permissions
@@ -33,6 +36,7 @@ machine to access the share, but the root account (system admin) on the worker
 machine could conceivably access the share inspite of any security measures
 because they could modify the SSH binary on the worker machine to give
 themselves access to the share.
+
 If it is necessary to send a password to the worker machine, place the password
 in the REMOTELY_WORKER_PASSWORD environment variable.  remotely provides no
 command line parameter for this password because command arguments appear in
@@ -41,9 +45,11 @@ Placing a password into an argument would allow other users on the system to
 easily learn the password.  It is recommended to establish public-private
 key authentication with the worker machine before using remotely, as it is
 more secure and works automatically.
+
 The overseer machine will authenticate the worker machine with public-private
 key authentication using a temporary key pair generated on a per-execution
 basis.
+
 Options:
     --overseer-hostname=<host> The hostname or external IP address of the
                                local machine that is requesting CPU time from
