@@ -39,7 +39,7 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 	private T payload = init;
 
 	private static bool isNullable(Q)() {
-		static if (is(typeof({ Q q = null; })))
+		static if (__traits(compiles, { Q q = null; }))
 			return true;
 		else
 			return false;
@@ -67,7 +67,7 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 	int opCmp(R)(auto ref const R rhs) const
 		if(!config.strictCompare || !is(R==T))
 	{
-		static if (is(typeof({payload.opCmp(rhs.payload);})))
+		static if (__traits(compiles, payload.opCmp(rhs.payload) ))
 			return payload.opCmp(rhs.payload);
 		else
 		{
@@ -137,7 +137,7 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 			if(!config.strictElements || !is(R==T))
 		{
 			//import std.conv;
-			static if (is(typeof({payload.opIndexAssign(expr,indices);})))
+			static if (__traits(compiles, payload.opIndexAssign(rhs,indices) ))
 			{
 				//pragma(msg, std.conv.to!string(__LINE__));
 				return payload.opIndexAssign(expr,indices);
@@ -187,26 +187,41 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 
 		// ----- opIndexOpAssign ------
 
-		auto opIndexOpAssign(string op, Q, A...)(Q expr, A indices)
+		auto opIndexOpAssign(string op, R, A...)(R rhs, A indices)
 			if(!config.strictElements || !is(Q==T))
 		{
-			static if (is(typeof({payload.opIndexOpAssign!op(expr,indices);})))
-				return payload.opIndexOpAssign!op(expr,indices); // Forward T-defined slices.
-			else static if ( is(Q==T) || is(Q==typeof(this)) )
-				mixin("return typeof(this)(payload[indices] "~op~" expr);"); // For built-in types.
-			else static if ( is(Q==E) )
-				mixin("return payload[indices] "~op~" expr;"); // For built-in types.
+			//import std.conv;
+			static if (__traits(compiles, payload.opIndexOpAssign!op(rhs,indices) ))
+			{
+				//pragma(msg, std.conv.to!string(__LINE__));
+				return payload.opIndex(indices); // Forward T-defined slices.
+			}
 			else
-				static assert(0); // Not sure what to do here.
+			{
+				const string expr = "payload["~ buildIndexList!A ~"] "~op~" rhs";
+				alias Q = typeof(mixin(expr));
+
+				//pragma(msg, std.conv.to!string(__LINE__)~": T is "~ T.stringof);
+				//pragma(msg, std.conv.to!string(__LINE__)~": "~ Q.stringof ~" "~expr);
+				static if ( is(T:Q) || is(Q==typeof(this)) ) {
+					mixin("return typeof(this)("~ expr ~");");
+				}
+				else static if ( is(E:Q) ) {
+					mixin("return "~expr~";");
+				}
+				else {
+					static assert(0);
+				}
+			}
 		}
 
+		/+
 		auto opIndexOpAssign(string op, Q, X:typeof(this))(Q expr, X slice)
 			if(!config.strictElements || !is(Q==T))
 		{
 			mixin("return typeof(this)(slice.payload "~op~" expr);");
 		}
 
-		/+
 		auto opIndexOpAssign(string op, Q, X)(Q expr, X slice)
 			if(!config.strictElements || !is(Q==T))
 		{
@@ -214,16 +229,16 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 		}
 		+/
 
-		auto opIndexOpAssign(string op, Q)(Q expr)
-			if(!config.strictElements || !is(Q==T))
+		auto opIndexOpAssign(string op, R)(R rhs)
+			if(!config.strictElements || !is(R==T))
 		{
-			mixin("return typeof(this)(this.payload[] "~op~" expr);");
+			mixin("return typeof(this)(this.payload[] "~op~" rhs);");
 		}
 
 		// ----- opIndex ------
 		auto opIndex(A...)(A indices) {
 			//import std.conv;
-			static if (is(typeof({payload.opIndex(indices);})))
+			static if (__traits(compiles, payload.opIndex(indices) ))
 			{
 				//pragma(msg, std.conv.to!string(__LINE__));
 				return payload.opIndex(indices); // Forward T-defined slices.
@@ -253,7 +268,7 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 		auto opSlice(size_t dim,N1,N2)(N1 lo, N2 hi) const
 			if ( isIntegral!N1 && isIntegral!N2 )
 		{
-			static if (is(typeof({payload.opSlice!dim(lo,hi);})))
+			static if (__traits(compiles, payload.opSlice!dim(lo,hi) ))
 				return payload.opSlice!dim(lo,hi); // Forward T-defined slices.
 			else
 				return ConfigurableTypedefSlice(lo,hi); // For built-in types.
@@ -263,20 +278,20 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 		{
 			//import std.conv;
 			//pragma(msg, std.conv.to!string(__LINE__));
-			static if (is(typeof({payload.opDollar!dim();})))
+			static if (__traits(compiles, payload.opDollar!dim() ))
 				return payload.opDollar!dim();
 			else
 				return payload.length;
 		}
 
-		static if ( !config.strictElements && is(typeof(payload.ptr)) )
+		static if ( !config.strictElements && __traits(compiles, payload.ptr) )
 			@property auto ptr() { return payload.ptr; }
 
-		static if ( is(typeof(payload.length)) )
+		static if (__traits(compiles, payload.length ))
 		{
 			@property auto length() const { return payload.length; }
 
-			static if ( !is(typeof(payload.empty)) )
+			static if ( !__traits(compiles, payload.empty) )
 				@property bool empty() const { return payload.length == 0; }
 		}
 	}
