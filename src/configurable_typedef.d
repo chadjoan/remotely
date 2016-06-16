@@ -11,30 +11,7 @@ struct TypedefConfig
 
 mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, string cookie=null)
 {
-	//import std.array;
-	//import std.conv;
 	import std.traits;
-	//import std.typecons;
-/+
-	private alias Typedef!(T, T.init, "SecureMem") SecureMemGuts;
-	private SecureMemGuts payload;
-	alias payload this;
-
-	this(typeof(null) n) { payload = n; }
-	this(T t) { payload = t; }
-	static if ( isArray!T )
-		this(void[] t) { payload = SecureMemGuts(cast(T)t); }
-
-	//void opAssign(typeof(null) n) { payload = n; }
-	static if ( isArray!T )
-		void opAssign(void[] t) { payload = SecureMemGuts(cast(T)t); }
-
-	static if ( isArray!T ) {
-		@property bool empty() const {
-			return (cast(T)payload).empty();
-		}
-	}
-+/
 
 	private T payload = init;
 
@@ -160,23 +137,6 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 			}
 		}
 
-		/+
-		auto opIndexAssign(Q, X:typeof(this))(Q expr, X slice)
-			if(!config.strictElements || !is(Q==T))
-		{
-			import std.conv;
-			pragma(msg, std.conv.to!string(__LINE__)~": "~ Q.stringof);
-			return typeof(this)(slice.payload = expr);
-		}
-
-		auto opIndexAssign(Q, X)(Q expr, X slice)
-			if(!config.strictElements || !is(Q==T))
-		{
-			import std.conv;
-			pragma(msg, std.conv.to!string(__LINE__));
-			return typeof(this)(this.payload.opIndexAssign(expr,slice));
-		}+/
-
 		auto opIndexAssign(R)(R rhs)
 			if(!config.strictElements || !is(R==T))
 		{
@@ -214,20 +174,6 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 				}
 			}
 		}
-
-		/+
-		auto opIndexOpAssign(string op, Q, X:typeof(this))(Q expr, X slice)
-			if(!config.strictElements || !is(Q==T))
-		{
-			mixin("return typeof(this)(slice.payload "~op~" expr);");
-		}
-
-		auto opIndexOpAssign(string op, Q, X)(Q expr, X slice)
-			if(!config.strictElements || !is(Q==T))
-		{
-			return typeof(this)(this.payload.opIndexOpAssign!op(expr,slice));
-		}
-		+/
 
 		auto opIndexOpAssign(string op, R)(R rhs)
 			if(!config.strictElements || !is(R==T))
@@ -295,20 +241,6 @@ mixin template ConfigurableTypedef(T, TypedefConfig config, T init = T.init, str
 				@property bool empty() const { return payload.length == 0; }
 		}
 	}
-
-	/+static typeof(this) opAssign(T t) {
-		typeof(this) ret;
-		ret.payload = t;
-		return ret;
-	}+/
-	//static void opAssign(T t) { return typeof(this)(t); }
-	//static void opAssign(typeof(null) n) { return typeof(this)(n); }
-	/+void opAssign(T t) { payload = t; }
-	void opAssign(typeof(null) n) { payload = n; }
-	static if ( isArray!T )
-		void opAssign(void[] t) { payload = cast(T)t; }
-	+/
-	//@property auto ref T data() const { return (cast(T)payload); }
 
 	auto toString() const {
 		import std.conv;

@@ -326,31 +326,9 @@ int main(string[] args)
 	auto channel = startNoninteractiveShell(sessionObj);
 	scope(exit)
 		endNoninteractiveShell(channel);
-	/+
-	import foo;
-	import ali;
-	Bar b;
-	b.a = 10;
-	writefln("b.a is %s", b.a);
-	+/
+
+
 	//genKeyPair();
-/+
-	auto sshArgs = std.array.appender!(string[])();
-	sshArgs.put("ssh");
-
-	// TODO: secure memory.
-	auto workerPassword = std.process.environment.get("REMOTELY_WORKER_PASSWORD");
-	if ( workerPassword )
-
-
-	sshArgs.put("-X");
-	std.process.execute(sshArgs.data); ["ssh",
-		"-l",workerUserName,
-		"-X", // Enable X11 forwarding, so that GUI programs can be migrated.
-		workerHostName,
-
-		]);+/
-	// Useful: http://unix.stackexchange.com/questions/2857/ssh-easily-copy-file-to-local-system
 
 	// TODO: Try just using SSHFS instead?
 	// Hmmm, maybe we can automatically establish private-public key encryption
@@ -369,27 +347,6 @@ int main(string[] args)
 	//exec(`PASSWD='%s' mount.cifs -o username=%s`, TODO:overseerPassword, overseerUserName);
 	return 0;
 }
-
-/+
-void sshConnect()
-{
-	ssh_session my_ssh_session;
-	int rc;
-	my_ssh_session = ssh_new();
-	if (my_ssh_session == null)
-		throw new Exception("Could not create an ssh_session structure with ssh_new().");
-	ssh_options_set(my_ssh_session, ssh_options_e.SSH_OPTIONS_HOST, "localhost".toStringz());
-	rc = ssh_connect(my_ssh_session);
-	if (rc != SSH_OK)
-	{
-		string errMsg = ssh_get_error(my_ssh_session).fromStringz().assumeUnique();
-		throw new Exception("Error connecting to localhost:\n"~errMsg);
-	}
-
-	ssh_disconnect(my_ssh_session);
-	ssh_free(my_ssh_session);
-}
-+/
 
 import c.openssl.bio;
 import c.openssl.err;

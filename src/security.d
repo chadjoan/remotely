@@ -37,35 +37,6 @@ struct SecureMem(T)
 
 
 }
-/+
-struct SecureMem(T)
-{
-	//import std.traits;
-	import std.typecons;
-
-	T payload;
-	mixin Proxy!payload;
-	//alias payload this;
-
-	this(typeof(null) n) { payload = n; }
-	this(T t) { payload = t; }
-	static if ( isArray!T )
-		this(void[] t) { payload = cast(T)t; }
-
-	/+static typeof(this) opAssign(T t) {
-		typeof(this) ret;
-		ret.payload = t;
-		return ret;
-	}+/
-	//static void opAssign(T t) { return typeof(this)(t); }
-	//static void opAssign(typeof(null) n) { return typeof(this)(n); }
-	/+void opAssign(T t) { payload = t; }
-	void opAssign(typeof(null) n) { payload = n; }
-	static if ( isArray!T )
-		void opAssign(void[] t) { payload = cast(T)t; }
-	+/
-}
-+/
 
 ///
 class OutOfSecureMemoryException : Exception {
